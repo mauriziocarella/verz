@@ -1,58 +1,81 @@
 # verz
+![NPM Version](https://img.shields.io/npm/v/verz)
 
-**verz** is a simple CLI tool for bumping your project's `package.json` version, committing the change, and tagging it in Git.
+**verz** is a simple CLI tool for bumping the version of your Node.js project, committing the change, and creating a Git tag — all in one go.
 
-## Installation
+> 🤓 Fun fact: verz uses itself to manage its own versions.
+
+## 📦 Installation
+
+Install **verz** globally or as a dev dependency:
 
 ```bash
-npm install -g verz
-```
-```bash
-yarn add -g verz
-```
-or
-```bash
-npx verz <type> [options]
+# Using npm
+npm install -D verz
+
+# Using yarn
+yarn add -D verz
+
+# Using pnpm
+pnpm add -D verz
 ```
 
-## Usage
+Or run it directly without installation using **npx**:
+
+```bash
+npx verz <type>
+```
+
+## ⚙️ Usage
+
+Run **verz** in the root of your project:
 
 ```bash
 verz <type> [options]
 ```
 
-* `<type>` must be one of `major`, `minor`, or `patch` (see [semver](https://www.npmjs.com/package/semver)).
+**`<type>`** is the type of version bump. (see [semver](https://www.npmjs.com/package/semver))
 
-## Example Commands
+## 📑 Options
+
+| Option             | Description                                  | Default             |
+| ------------------ | -------------------------------------------- |---------------------|
+| `--commit.message` | Custom commit message. Use `%v` for version. | `chore: release %v` |
+| `-v, --verbose`    | Enable verbose debug logging.                | `false`             |
+| `--dryRun`         | Run without writing files or committing.     | `false`             |
+
+## ✅ Examples
+
+Bump the patch version:
 
 ```bash
-# Bump patch version (e.g., 1.0.0 -> 1.0.1)
 verz patch
-
-# Bump minor version with a custom commit message
-verz minor --commit.message "Release version %v"
-
-# Bump major version with verbose logging and no actual changes (dry run)
-verz major --verbose --dryRun
 ```
 
-## Options
+Bump the minor version with a custom commit message:
 
-| Option             | Description                                                   |
-| ------------------ | ------------------------------------------------------------- |
-| `--commit.message` | Custom commit message. Use `%v` as a placeholder for version. |
-| `-v, --verbose`    | Enable verbose logging.                                       |
-| `--dryRun`         | Perform a dry run without writing or committing changes.      |
+```bash
+verz minor --commit.message "release: bump to %v"
+```
 
-## How it works
+Dry run (show what would happen without doing it):
 
-1. Reads the current version from `package.json`.
-2. Bumps the version using [semver](https://www.npmjs.com/package/semver).
-3. Stashes any uncommitted changes to avoid conflicts.
-4. Updates `package.json`.
-5. Creates a git commit and tag with the new version.
-6. Restores any stashed changes.
+```bash
+verz major --dryRun
+```
 
-## License
+Enable verbose logging:
 
-MIT
+```bash
+verz patch -v
+```
+
+Run without installing:
+
+```bash
+npx verz patch
+```
+
+## 📝 License
+
+MIT License
