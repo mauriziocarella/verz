@@ -20,6 +20,14 @@ function bumpVersion(type: ReleaseType): string {
 		throw new Error(`Failed to bump version: ${packageJson.version}`);
 	}
 	
+	// Check if package.json has uncommitted changes
+	const packageJsonStatus = exec('git', ['status', '--porcelain', 'package.json'], {
+		ignoreReturnCode: true,
+	});
+	if (packageJsonStatus.length > 0) {
+		throw new Error('package.json has uncommitted changes. Please commit or stash them first.');
+	}
+	
 	// Stash any current changes
 	const hasChanges = exec('git', ['diff', 'HEAD'], {
 		ignoreReturnCode: true,
