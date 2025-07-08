@@ -44,6 +44,26 @@ verz <type> [options]
 | `-v, --verbose`    | Enable verbose debug logging.                | `false`             |
 | `--dryRun`         | Run without writing files or committing.     | `false`             |
 
+## ⚙️ Configuration
+
+You can configure **verz** using a configuration file. Create one of the following files in your project root:
+
+- `verz.config.js`
+- `verz.config.mjs`
+- `verz.config.json`
+
+The configuration file structure:
+```json
+{
+  "commit": {
+    "message": "chore: version %v"
+  },
+  "tag": {
+    "name": "%v"
+  }
+}
+```
+
 ## ✅ Examples
 
 Bump the patch version:
