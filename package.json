@@ -3,6 +3,29 @@
 	"version": "0.0.2",
 	"description": "",
 	"repository": "github:mauriziocarella/verz",
+	"license": "MIT",
+	"author": {
+		"name": "Maurizio Carella",
+		"email": "info@mauriziocarella.it",
+		"url": "https://mauriziocarella.it"
+	},
+	"bugs": {
+		"url": "https://github.com/mauriziocarella/verz/issues",
+		"email": "support@mauriziocarella.it"
+	},
+	"keywords": [
+		"version",
+		"versioning",
+		"semver",
+		"git",
+		"cli",
+		"tag",
+		"release",
+		"bump",
+		"version-management",
+		"package-json",
+		"typescript"
+	],
 	"main": "dist/index.js",
 	"bin": "dist/index.js",
 	"files": [

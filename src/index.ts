@@ -5,7 +5,6 @@ import {join} from 'node:path';
 import {Command} from 'commander';
 import semver, {type ReleaseType} from 'semver';
 import Logger from '@/lib/logger';
-import logger from '@/lib/logger';
 import exec from '@/lib/exec';
 import Config, {type VerzConfig} from '@/lib/config';
 import type {DeepPartial} from '@/lib/types';
@@ -31,7 +30,7 @@ function bumpVersion(type: ReleaseType): string {
 	
 	packageJson.version = newVersion;
 	
-	logger.debug('Updating package.json');
+	Logger.debug('Updating package.json');
 	const match = packageContent.match(/^(?:( +)|\t+)/m);
 	const indent = match?.[0] ?? '  ';
 	if (!config.dryRun) writeFileSync(packagePath, JSON.stringify(packageJson, null, indent) + '\n');
