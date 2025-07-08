@@ -1,5 +1,5 @@
 # verz
-![NPM Version](https://img.shields.io/npm/v/verz)
+[![NPM Version](https://img.shields.io/npm/v/verz)](https://www.npmjs.com/package/verz)
 
 **verz** is a simple CLI tool for bumping the version of your Node.js project, committing the change, and creating a Git tag — all in one go.
 
