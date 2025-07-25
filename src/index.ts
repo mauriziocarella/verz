@@ -38,7 +38,7 @@ function bumpVersion(type: ReleaseType): string {
 	
 	packageJson.version = newVersion;
 	
-	Logger.debug('Updating package.json');
+	Logger.debug(`Updating ${Logger.COLORS.gray}package.json`);
 	const match = packageContent.match(/^(?:( +)|\t+)/m);
 	const indent = match?.[0] ?? '  ';
 	if (!config.dryRun) writeFileSync(packagePath, JSON.stringify(packageJson, null, indent) + '\n');
@@ -47,11 +47,11 @@ function bumpVersion(type: ReleaseType): string {
 		exec('git', ['add', 'package.json']);
 		
 		const commitMessage = config.commit.message.replace('%v', newVersion);
-		Logger.info('Committing changes with message:', commitMessage);
+		Logger.info(`Committing changes with message${Logger.COLORS.magenta}`, commitMessage);
 		exec('git', ['commit', '-m', commitMessage]);
 		
 		const tagName = config.tag.name.replace('%v', newVersion);
-		Logger.info('Creating tag:', tagName);
+		Logger.info(`Creating tag${Logger.COLORS.magenta}`, tagName);
 		exec('git', ['tag', tagName]);
 	} catch (e) {
 		Logger.error('Failed to commit and tag:', e);
@@ -89,7 +89,7 @@ async function main(): Promise<void> {
 							options.patch ? 'patch' : undefined;
 				
 				if (!type) {
-					Logger.error('Error: Please specify one of: --patch, --minor, or --major');
+					Logger.error('Please specify one of: --patch, --minor, or --major');
 					process.exit(1);
 				}
 				
@@ -103,7 +103,7 @@ async function main(): Promise<void> {
 				await Config.load(cliConfig)
 				
 				const newVersion = bumpVersion(type);
-				Logger.info(`Version bumped to ${newVersion}`);
+				Logger.info(`Version bumped to${Logger.COLORS.magenta}`, newVersion);
 			} catch (error) {
 				Logger.error('Error:', error);
 				process.exit(1);

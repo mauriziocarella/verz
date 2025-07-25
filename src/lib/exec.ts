@@ -1,10 +1,10 @@
 import {spawnSync} from 'node:child_process';
-import logger from '@/lib/logger';
+import Logger from '@/lib/logger';
 import Config from '@/lib/config';
 
 const exec = (command: string, args: (string | number)[], options?: {ignoreReturnCode?: boolean}) => {
 	const config = Config.get()
-	logger.debug('Running command:', command, args);
+	Logger.debug(`Running command${Logger.COLORS.gray}`, command, args);
 	
 	if (config.dryRun) return '';
 	
