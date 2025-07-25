@@ -47,9 +47,11 @@ function bumpVersion(type: ReleaseType): string {
 		exec('git', ['add', 'package.json']);
 		
 		const commitMessage = config.commit.message.replace('%v', newVersion);
+		Logger.info('Committing changes with message:', commitMessage);
 		exec('git', ['commit', '-m', commitMessage]);
 		
 		const tagName = config.tag.name.replace('%v', newVersion);
+		Logger.info('Creating tag:', tagName);
 		exec('git', ['tag', tagName]);
 	} catch (e) {
 		Logger.error('Failed to commit and tag:', e);
@@ -69,16 +71,28 @@ async function main(): Promise<void> {
 	program
 		.name('verz')
 		.description('Version bumping tool')
-		.argument('<type>', 'version bump type (major, minor, patch)')
+		.option('--patch', 'bump patch version')
+		.option('--minor', 'bump minor version')
+		.option('--major', 'bump major version')
 		.option('--commit.message <message>', 'custom commit message')
 		.option('-v, --verbose', 'enable verbose logging')
-		.option('--dryRun', 'dry run')
-		.action(async (type: ReleaseType, options: { 'commit.message'?: string; verbose?: boolean, dryRun?: boolean }) => {
+		.option('--dryRun, --dry-run', 'dry run')
+		.action(async (options: { patch?: boolean; minor?: boolean; major?: boolean; 'commit.message'?: string; verbose?: boolean; dryRun?: boolean }) => {
 			if (options.verbose) {
 				Logger.level('debug');
 			}
 			
 			try {
+				const type: ReleaseType | undefined =
+					options.major ? 'major' :
+						options.minor ? 'minor' :
+							options.patch ? 'patch' : undefined;
+				
+				if (!type) {
+					Logger.error('Error: Please specify one of: --patch, --minor, or --major');
+					process.exit(1);
+				}
+				
 				const cliConfig: DeepPartial<VerzConfig> = {
 					commit: {
 						message: options['commit.message'],
