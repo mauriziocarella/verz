@@ -23,7 +23,7 @@ pnpm add -D verz
 Or run it directly without installation using **npx**:
 
 ```bash
-npx verz <type>
+npx verz --<type>
 ```
 
 ## ⚙️ Usage
@@ -31,7 +31,7 @@ npx verz <type>
 Run **verz** in the root of your project:
 
 ```bash
-verz <type> [options]
+verz --<type> [options]
 ```
 
 **`<type>`** is the type of version bump. (see [semver](https://www.npmjs.com/package/semver))
@@ -39,10 +39,10 @@ verz <type> [options]
 ## 📑 Options
 
 | Option             | Description                                  | Default             |
-| ------------------ | -------------------------------------------- |---------------------|
+|--------------------| -------------------------------------------- |---------------------|
 | `--commit.message` | Custom commit message. Use `%v` for version. | `chore: release %v` |
 | `-v, --verbose`    | Enable verbose debug logging.                | `false`             |
-| `--dryRun`         | Run without writing files or committing.     | `false`             |
+| `--dry-run`        | Run without writing files or committing.     | `false`             |
 
 ## ⚙️ Configuration
 
@@ -69,19 +69,19 @@ The configuration file structure:
 Bump the patch version:
 
 ```bash
-verz patch
+verz --patch
 ```
 
 Bump the minor version with a custom commit message:
 
 ```bash
-verz minor --commit.message "release: bump to %v"
+verz --minor --commit.message "release: bump to %v"
 ```
 
 Dry run (show what would happen without doing it):
 
 ```bash
-verz major --dryRun
+verz --major --dry-run
 ```
 
 Enable verbose logging:

@@ -76,7 +76,7 @@ async function main(): Promise<void> {
 		.option('--major', 'bump major version')
 		.option('--commit.message <message>', 'custom commit message')
 		.option('-v, --verbose', 'enable verbose logging')
-		.option('--dryRun, --dry-run', 'dry run')
+		.option('--dry-run', 'dry run')
 		.action(async (options: { patch?: boolean; minor?: boolean; major?: boolean; 'commit.message'?: string; verbose?: boolean; dryRun?: boolean }) => {
 			if (options.verbose) {
 				Logger.level('debug');
