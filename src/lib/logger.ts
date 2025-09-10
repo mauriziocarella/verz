@@ -8,6 +8,7 @@ const COLORS = {
 	green: '\x1b[32m',
 	magenta: '\x1b[35m',
 	gray: '\x1b[90m',
+	cyan: '\x1b[36m',
 } as const;
 
 export type LogLevel = 'error' | 'warn' | 'info' | 'debug';

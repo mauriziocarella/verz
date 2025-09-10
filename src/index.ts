@@ -14,6 +14,7 @@ type Options = {
 	'minor'?: boolean;
 	'major'?: boolean;
 	'prerelease'?: boolean | string;
+	'version'?: string;
 	'commit.message'?: string;
 	'verbose'?: boolean;
 	'dryRun'?: boolean;
@@ -29,10 +30,14 @@ async function main(): Promise<void> {
 		.option('--minor', 'bump minor version')
 		.option('--major', 'bump major version')
 		.option('--prerelease [preid]', 'bump to prerelease version (optionally specify preid: alpha, beta, rc, etc.)')
+		.option('--version <version>', 'set exact version (e.g., 1.2.3)')
 		.option('--commit.message <message>', 'custom commit message')
 		.option('-v, --verbose', 'enable verbose logging')
 		.option('--dry-run', 'dry run')
-		.addHelpText('after', '\nAt least one of --patch, --minor, --major, or --prerelease must be specified.')
+		.addHelpText(
+			'after',
+			'\nAt least one of --patch, --minor, --major, --prerelease, or --version must be specified.',
+		)
 		.action(async (options: Options) => {
 			if (options.verbose) {
 				Logger.level('debug');
@@ -42,6 +47,7 @@ async function main(): Promise<void> {
 				//region Load config
 				let type: ReleaseType | undefined;
 				let preid: string | undefined;
+				let newVersion: string | undefined;
 
 				// Count how many version bump options are specified
 				const versionBumpOptions = [
@@ -49,23 +55,25 @@ async function main(): Promise<void> {
 					options.minor ? 'minor' : null,
 					options.major ? 'major' : null,
 					options.prerelease !== undefined ? 'prerelease' : null,
+					options.version ? 'version' : null,
 				].filter(Boolean);
 
-				if (versionBumpOptions.length === 0) {
-					Logger.error('Error: You must specify one of: --patch, --minor, --major, or --prerelease');
-					program.help({error: true});
-					return;
-				}
+				if (versionBumpOptions.length === 0)
+					throw new Error('You must specify one of: --patch, --minor, --major, --prerelease, or --version');
 
-				if (versionBumpOptions.length > 1) {
-					Logger.error(
-						`Error: Only one version bump option can be specified. Found: ${versionBumpOptions.join(', ')}`,
+				if (versionBumpOptions.length > 1)
+					throw new Error(
+						`Only one version bump option can be specified. Found: ${versionBumpOptions.join(', ')}`,
 					);
-					program.help({error: true});
-					return;
-				}
 
-				if (options.prerelease !== undefined) {
+				if (options.version) {
+					if (!semver.valid(options.version))
+						throw new Error(
+							`Invalid version specified: ${options.version}. Must be a valid semver version.`,
+						);
+
+					newVersion = options.version;
+				} else if (options.prerelease !== undefined) {
 					type = 'prerelease';
 					preid = typeof options.prerelease === 'string' ? options.prerelease : 'rc';
 				} else if (options.major) {
@@ -74,12 +82,6 @@ async function main(): Promise<void> {
 					type = 'minor';
 				} else if (options.patch) {
 					type = 'patch';
-				}
-
-				if (!type) {
-					Logger.error('Error: You must specify one of: --patch, --minor, --major, or --prerelease');
-					program.help({error: true});
-					return;
 				}
 
 				const cliConfig: DeepPartial<VerzConfig> = {
@@ -99,9 +101,15 @@ async function main(): Promise<void> {
 				const packageContent = readFileSync(packagePath, 'utf-8');
 				const packageJson = JSON.parse(packageContent);
 
-				const newVersion = semver.inc(packageJson.version, type, false, preid || 'rc');
+				Logger.info(`Current version${Logger.COLORS.magenta}`, packageJson.version);
+
 				if (!newVersion) {
-					throw new Error(`Failed to bump version: ${packageJson.version}`);
+					if (!type) throw new Error('No version bump type specified');
+
+					const calculatedVersion = semver.inc(packageJson.version, type, false, preid || 'rc');
+					if (!calculatedVersion) throw new Error(`Failed to bump version: ${packageJson.version}`);
+
+					newVersion = calculatedVersion;
 				}
 
 				// Check if package.json has uncommitted changes
@@ -149,7 +157,7 @@ async function main(): Promise<void> {
 				Logger.info(`Version bumped to${Logger.COLORS.magenta}`, newVersion);
 				//endregion
 			} catch (error) {
-				Logger.error('Error:', error);
+				Logger.error(error);
 				process.exit(1);
 			}
 		});
