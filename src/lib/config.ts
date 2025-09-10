@@ -7,25 +7,25 @@ import {deepMerge} from '@/lib/utils';
 export type VerzConfig = {
 	commit: {
 		message: string;
-	}
+	};
 	tag: {
 		name: string;
-	}
+	};
 	dryRun: boolean;
-}
+};
 const defaultConfig: VerzConfig = {
 	commit: {
-		message: 'chore: version %v'
+		message: 'chore: version %v',
 	},
 	tag: {
-		name: '%v'
+		name: '%v',
 	},
 	dryRun: false,
 };
 
 class Config {
-	private config: VerzConfig = defaultConfig
-	
+	private config: VerzConfig = defaultConfig;
+
 	private async fileLoad() {
 		const configFiles = ['verz.config.json', 'verz.config.js', 'verz.config.mjs'];
 		for (const file of configFiles) {
@@ -39,6 +39,7 @@ class Config {
 						const module = await import(configPath);
 						return module.default;
 					} else {
+						// eslint-disable-next-line @typescript-eslint/no-require-imports
 						return require(configPath);
 					}
 				} catch (error) {
@@ -48,19 +49,18 @@ class Config {
 		}
 		return {};
 	}
-	
+
 	async load(override: DeepPartial<VerzConfig> = {}): Promise<VerzConfig> {
 		const fileConfig = await this.fileLoad();
-		
+
 		this.config = deepMerge(deepMerge(this.config, fileConfig), override);
-		
+
 		return this.config;
 	}
-	
+
 	get(): VerzConfig {
 		return this.config;
 	}
 }
-
 
 export default new Config();

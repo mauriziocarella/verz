@@ -10,18 +10,18 @@ import Config, {type VerzConfig} from '@/lib/config';
 import type {DeepPartial} from '@/lib/types';
 
 type Options = {
-	patch?: boolean;
-	minor?: boolean;
-	major?: boolean;
-	prerelease?: boolean | string;
+	'patch'?: boolean;
+	'minor'?: boolean;
+	'major'?: boolean;
+	'prerelease'?: boolean | string;
 	'commit.message'?: string;
-	verbose?: boolean;
-	dryRun?: boolean
-}
+	'verbose'?: boolean;
+	'dryRun'?: boolean;
+};
 
 async function main(): Promise<void> {
 	const program = new Command();
-	
+
 	program
 		.name('verz')
 		.description('Version bumping tool')
@@ -37,7 +37,7 @@ async function main(): Promise<void> {
 			if (options.verbose) {
 				Logger.level('debug');
 			}
-			
+
 			try {
 				//region Load config
 				let type: ReleaseType | undefined;
@@ -48,18 +48,20 @@ async function main(): Promise<void> {
 					options.patch ? 'patch' : null,
 					options.minor ? 'minor' : null,
 					options.major ? 'major' : null,
-					options.prerelease !== undefined ? 'prerelease' : null
+					options.prerelease !== undefined ? 'prerelease' : null,
 				].filter(Boolean);
 
 				if (versionBumpOptions.length === 0) {
 					Logger.error('Error: You must specify one of: --patch, --minor, --major, or --prerelease');
-					program.help({ error: true });
+					program.help({error: true});
 					return;
 				}
 
 				if (versionBumpOptions.length > 1) {
-					Logger.error(`Error: Only one version bump option can be specified. Found: ${versionBumpOptions.join(', ')}`);
-					program.help({ error: true });
+					Logger.error(
+						`Error: Only one version bump option can be specified. Found: ${versionBumpOptions.join(', ')}`,
+					);
+					program.help({error: true});
 					return;
 				}
 
@@ -73,35 +75,35 @@ async function main(): Promise<void> {
 				} else if (options.patch) {
 					type = 'patch';
 				}
-				
+
 				if (!type) {
 					Logger.error('Error: You must specify one of: --patch, --minor, --major, or --prerelease');
-					program.help({ error: true });
+					program.help({error: true});
 					return;
 				}
-				
+
 				const cliConfig: DeepPartial<VerzConfig> = {
 					commit: {
 						message: options['commit.message'],
 					},
-					dryRun: options['dryRun']
+					dryRun: options['dryRun'],
 				};
-				
-				await Config.load(cliConfig)
+
+				await Config.load(cliConfig);
 				//endregion
-				
+
 				//region Bump version
-				
+
 				const config = Config.get();
 				const packagePath = join(process.cwd(), 'package.json');
 				const packageContent = readFileSync(packagePath, 'utf-8');
 				const packageJson = JSON.parse(packageContent);
-				
+
 				const newVersion = semver.inc(packageJson.version, type, false, preid || 'rc');
 				if (!newVersion) {
 					throw new Error(`Failed to bump version: ${packageJson.version}`);
 				}
-				
+
 				// Check if package.json has uncommitted changes
 				const packageJsonStatus = exec('git', ['status', '--porcelain', 'package.json'], {
 					ignoreReturnCode: true,
@@ -109,29 +111,30 @@ async function main(): Promise<void> {
 				if (packageJsonStatus.length > 0) {
 					throw new Error('package.json has uncommitted changes. Please commit or stash them first.');
 				}
-				
+
 				// Stash any current changes
-				const hasChanges = exec('git', ['diff', 'HEAD'], {
-					ignoreReturnCode: true,
-				}).length > 0;
+				const hasChanges =
+					exec('git', ['diff', 'HEAD'], {
+						ignoreReturnCode: true,
+					}).length > 0;
 				if (hasChanges) {
 					exec('git', ['stash', 'push', '--keep-index']);
 				}
-				
+
 				packageJson.version = newVersion;
-				
+
 				Logger.debug(`Updating ${Logger.COLORS.gray}package.json`);
 				const match = packageContent.match(/^(?:( +)|\t+)/m);
 				const indent = match?.[0] ?? '  ';
 				if (!config.dryRun) writeFileSync(packagePath, JSON.stringify(packageJson, null, indent) + '\n');
-				
+
 				try {
 					exec('git', ['add', 'package.json']);
-					
+
 					const commitMessage = config.commit.message.replace('%v', newVersion);
 					Logger.info(`Committing changes with message${Logger.COLORS.magenta}`, commitMessage);
 					exec('git', ['commit', '-m', commitMessage]);
-					
+
 					const tagName = config.tag.name.replace('%v', newVersion);
 					Logger.info(`Creating tag${Logger.COLORS.magenta}`, tagName);
 					exec('git', ['tag', tagName]);
@@ -150,12 +153,10 @@ async function main(): Promise<void> {
 				process.exit(1);
 			}
 		});
-	
+
 	program.parse();
 }
 
 main();
 
-export {
-	VerzConfig
-}
+export {VerzConfig};
