@@ -38,11 +38,16 @@ verz --<type> [options]
 
 ## 📑 Options
 
-| Option             | Description                                  | Default             |
-|--------------------| -------------------------------------------- |---------------------|
-| `--commit.message` | Custom commit message. Use `%v` for version. | `chore: release %v` |
-| `-v, --verbose`    | Enable verbose debug logging.                | `false`             |
-| `--dry-run`        | Run without writing files or committing.     | `false`             |
+| Option             | Description                                                                 | Default             |
+|--------------------| --------------------------------------------------------------------------- |---------------------|
+| `--patch`          | Bump the patch version (0.0.x)                                              | `false`             |
+| `--minor`          | Bump the minor version (0.x.0)                                              | `false`             |
+| `--major`          | Bump the major version (x.0.0)                                              | `false`             |
+| `--prerelease [preid]` | Bump to prerelease version (e.g., 1.0.0 -> 1.0.1-rc.0). Optionally specify preid (alpha, beta, rc, etc.) | `false` |
+| `--version <version>`  | Set exact version (e.g., 1.2.3)                                         |                     |
+| `--commit.message` | Custom commit message. Use `%v` for version.                                | `chore: release %v` |
+| `-v, --verbose`    | Enable verbose debug logging.                                               | `false`             |
+| `--dry-run`        | Run without writing files or committing.                                    | `false`             |
 
 ## ⚙️ Configuration
 
@@ -72,6 +77,24 @@ Bump the patch version:
 verz --patch
 ```
 
+Bump to a prerelease version (defaults to 'rc' preid):
+
+```bash
+verz --prerelease
+```
+
+Bump to a specific prerelease type:
+
+```bash
+verz --prerelease beta
+```
+
+Set an exact version:
+
+```bash
+verz --version 2.0.0
+```
+
 Bump the minor version with a custom commit message:
 
 ```bash
@@ -87,13 +110,13 @@ verz --major --dry-run
 Enable verbose logging:
 
 ```bash
-verz patch -v
+verz --patch -v
 ```
 
 Run without installing:
 
 ```bash
-npx verz patch
+npx verz --patch
 ```
 
 ## 📝 License
