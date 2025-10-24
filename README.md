@@ -45,6 +45,7 @@ verz --<type> [options]
 | `--major`          | Bump the major version (x.0.0)                                              | `false`             |
 | `--prerelease [preid]` | Bump to prerelease version (e.g., 1.0.0 -> 1.0.1-rc.0). Optionally specify preid (alpha, beta, rc, etc.) | `false` |
 | `--version <version>`  | Set exact version (e.g., 1.2.3)                                         |                     |
+| `--tag-only`       | Create a git tag for the current version without bumping the version     | `false`             |
 | `--commit.message` | Custom commit message. Use `%v` for version.                                | `chore: release %v` |
 | `-v, --verbose`    | Enable verbose debug logging.                                               | `false`             |
 | `--dry-run`        | Run without writing files or committing.                                    | `false`             |
@@ -99,6 +100,12 @@ Bump the minor version with a custom commit message:
 
 ```bash
 verz --minor --commit.message "release: bump to %v"
+```
+
+Create a git tag for the current version without bumping:
+
+```bash
+verz --tag-only
 ```
 
 Dry run (show what would happen without doing it):

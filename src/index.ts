@@ -14,6 +14,7 @@ type Options = {
 	'minor'?: boolean;
 	'major'?: boolean;
 	'prerelease'?: boolean | string;
+	'tagOnly'?: boolean;
 	'version'?: string;
 	'commit.message'?: string;
 	'verbose'?: boolean;
@@ -30,6 +31,7 @@ async function main(): Promise<void> {
 		.option('--minor', 'bump minor version')
 		.option('--major', 'bump major version')
 		.option('--prerelease [preid]', 'bump to prerelease version (optionally specify preid: alpha, beta, rc, etc.)')
+		.option('--tag-only', 'create a tag for the current version without bumping the version')
 		.option('--version <version>', 'set exact version (e.g., 1.2.3)')
 		.option('--commit.message <message>', 'custom commit message')
 		.option('-v, --verbose', 'enable verbose logging')
@@ -58,8 +60,10 @@ async function main(): Promise<void> {
 					options.version ? 'version' : null,
 				].filter(Boolean);
 
-				if (versionBumpOptions.length === 0)
-					throw new Error('You must specify one of: --patch, --minor, --major, --prerelease, or --version');
+				if (versionBumpOptions.length === 0 && !options.tagOnly)
+					throw new Error(
+						'You must specify one of: --patch, --minor, --major, --prerelease, --version, or --tag-only',
+					);
 
 				if (versionBumpOptions.length > 1)
 					throw new Error(
@@ -103,7 +107,12 @@ async function main(): Promise<void> {
 
 				Logger.info(`Current version${Logger.COLORS.magenta}`, packageJson.version);
 
-				if (!newVersion) {
+				// If tagOnly is true, use the current version
+				if (options.tagOnly) {
+					newVersion = packageJson.version;
+
+					if (!newVersion) throw new Error('No version found in package.json');
+				} else if (!newVersion) {
 					if (!type) throw new Error('No version bump type specified');
 
 					const calculatedVersion = semver.inc(packageJson.version, type, false, preid || 'rc');
@@ -129,32 +138,41 @@ async function main(): Promise<void> {
 					exec('git', ['stash', 'push', '--keep-index']);
 				}
 
-				packageJson.version = newVersion;
+				// Only update package.json if we're not in tag-only mode
+				if (!options.tagOnly) {
+					packageJson.version = newVersion;
 
-				Logger.debug(`Updating ${Logger.COLORS.gray}package.json`);
-				const match = packageContent.match(/^(?:( +)|\t+)/m);
-				const indent = match?.[0] ?? '  ';
-				if (!config.dryRun) writeFileSync(packagePath, JSON.stringify(packageJson, null, indent) + '\n');
+					Logger.debug(`Updating ${Logger.COLORS.gray}package.json`);
+					const match = packageContent.match(/^(?:( +)|\t+)/m);
+					const indent = match?.[0] ?? '  ';
+					if (!config.dryRun) writeFileSync(packagePath, JSON.stringify(packageJson, null, indent) + '\n');
 
-				try {
-					exec('git', ['add', 'package.json']);
+					try {
+						exec('git', ['add', 'package.json']);
 
-					const commitMessage = config.commit.message.replace('%v', newVersion);
-					Logger.info(`Committing changes with message${Logger.COLORS.magenta}`, commitMessage);
-					exec('git', ['commit', '-m', commitMessage]);
+						const commitMessage = config.commit.message.replace('%v', newVersion);
+						Logger.info(`Committing changes with message${Logger.COLORS.magenta}`, commitMessage);
+						exec('git', ['commit', '-m', commitMessage]);
 
-					const tagName = config.tag.name.replace('%v', newVersion);
-					Logger.info(`Creating tag${Logger.COLORS.magenta}`, tagName);
-					exec('git', ['tag', tagName]);
-				} catch (e) {
-					Logger.error('Failed to commit and tag:', e);
-				} finally {
-					// Restore previously stashed changes
-					if (hasChanges) {
-						exec('git', ['stash', 'pop']);
+						const tagName = config.tag.name.replace('%v', newVersion);
+						Logger.info(`Creating tag${Logger.COLORS.magenta}`, tagName);
+						exec('git', ['tag', tagName]);
+					} catch (e) {
+						Logger.error('Failed to commit and tag:', e);
+					} finally {
+						// Restore previously stashed changes
+						if (hasChanges) {
+							exec('git', ['stash', 'pop']);
+						}
 					}
+
+					Logger.info(`Version bumped to${Logger.COLORS.magenta}`, newVersion);
+				} else {
+					// In tag-only mode, just create the tag without committing
+					const tagName = config.tag.name.replace('%v', newVersion);
+					Logger.info(`Creating tag for current version${Logger.COLORS.magenta}`, tagName);
+					exec('git', ['tag', tagName]);
 				}
-				Logger.info(`Version bumped to${Logger.COLORS.magenta}`, newVersion);
 				//endregion
 			} catch (error) {
 				Logger.error(error);
