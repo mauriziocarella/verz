@@ -38,7 +38,7 @@ async function main(): Promise<void> {
 		.option('--dry-run', 'dry run')
 		.addHelpText(
 			'after',
-			'\nAt least one of --patch, --minor, --major, --prerelease, or --version must be specified.',
+			'\nAt least one of --patch, --minor, --major, --prerelease, --version, --tag-only must be specified.',
 		)
 		.action(async (options: Options) => {
 			if (options.verbose) {
