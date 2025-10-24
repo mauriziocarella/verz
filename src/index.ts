@@ -9,38 +9,44 @@ import exec from '@/lib/exec';
 import Config, {type VerzConfig} from '@/lib/config';
 import type {DeepPartial} from '@/lib/types';
 
-type Options = {
+type CommonOptions = {
+	verbose?: boolean;
+	dryRun?: boolean;
+};
+type VersionOptions = CommonOptions & {
 	'patch'?: boolean;
 	'minor'?: boolean;
 	'major'?: boolean;
 	'prerelease'?: boolean | string;
-	'tagOnly'?: boolean;
 	'version'?: string;
 	'commit.message'?: string;
-	'verbose'?: boolean;
-	'dryRun'?: boolean;
 };
+
+type TagOptions = CommonOptions & {};
 
 async function main(): Promise<void> {
 	const program = new Command();
 
+	program.name('verz');
+
 	program
-		.name('verz')
+		.command('version', {
+			isDefault: true,
+		})
 		.description('Version bumping tool')
 		.option('--patch', 'bump patch version')
 		.option('--minor', 'bump minor version')
 		.option('--major', 'bump major version')
 		.option('--prerelease [preid]', 'bump to prerelease version (optionally specify preid: alpha, beta, rc, etc.)')
-		.option('--tag-only', 'create a tag for the current version without bumping the version')
 		.option('--version <version>', 'set exact version (e.g., 1.2.3)')
 		.option('--commit.message <message>', 'custom commit message')
 		.option('-v, --verbose', 'enable verbose logging')
 		.option('--dry-run', 'dry run')
-		.addHelpText(
-			'after',
-			'\nAt least one of --patch, --minor, --major, --prerelease, --version, --tag-only must be specified.',
-		)
-		.action(async (options: Options) => {
+		// .addHelpText(
+		// 	'after',
+		// 	'\nAt least one of --patch, --minor, --major, --prerelease, or --version must be specified.',
+		// )
+		.action(async (options: VersionOptions) => {
 			if (options.verbose) {
 				Logger.level('debug');
 			}
@@ -60,10 +66,8 @@ async function main(): Promise<void> {
 					options.version ? 'version' : null,
 				].filter(Boolean);
 
-				if (versionBumpOptions.length === 0 && !options.tagOnly)
-					throw new Error(
-						'You must specify one of: --patch, --minor, --major, --prerelease, --version, or --tag-only',
-					);
+				if (versionBumpOptions.length === 0)
+					throw new Error('You must specify one of: --patch, --minor, --major, --prerelease, or --version');
 
 				if (versionBumpOptions.length > 1)
 					throw new Error(
@@ -107,12 +111,7 @@ async function main(): Promise<void> {
 
 				Logger.info(`Current version${Logger.COLORS.magenta}`, packageJson.version);
 
-				// If tagOnly is true, use the current version
-				if (options.tagOnly) {
-					newVersion = packageJson.version;
-
-					if (!newVersion) throw new Error('No version found in package.json');
-				} else if (!newVersion) {
+				if (!newVersion) {
 					if (!type) throw new Error('No version bump type specified');
 
 					const calculatedVersion = semver.inc(packageJson.version, type, false, preid || 'rc');
@@ -138,46 +137,89 @@ async function main(): Promise<void> {
 					exec('git', ['stash', 'push', '--keep-index']);
 				}
 
-				// Only update package.json if we're not in tag-only mode
-				if (!options.tagOnly) {
-					packageJson.version = newVersion;
+				// Update package.json with new version
+				packageJson.version = newVersion;
 
-					Logger.debug(`Updating ${Logger.COLORS.gray}package.json`);
-					const match = packageContent.match(/^(?:( +)|\t+)/m);
-					const indent = match?.[0] ?? '  ';
-					if (!config.dryRun) writeFileSync(packagePath, JSON.stringify(packageJson, null, indent) + '\n');
+				Logger.debug(`Updating ${Logger.COLORS.gray}package.json`);
+				const match = packageContent.match(/^(?:( +)|\t+)/m);
+				const indent = match?.[0] ?? '  ';
+				if (!config.dryRun) writeFileSync(packagePath, JSON.stringify(packageJson, null, indent) + '\n');
 
-					try {
-						exec('git', ['add', 'package.json']);
+				try {
+					exec('git', ['add', 'package.json']);
 
-						const commitMessage = config.commit.message.replace('%v', newVersion);
-						Logger.info(`Committing changes with message${Logger.COLORS.magenta}`, commitMessage);
-						exec('git', ['commit', '-m', commitMessage]);
+					const commitMessage = config.commit.message.replace('%v', newVersion);
+					Logger.info(`Committing changes with message${Logger.COLORS.magenta}`, commitMessage);
+					exec('git', ['commit', '-m', commitMessage]);
 
-						const tagName = config.tag.name.replace('%v', newVersion);
-						Logger.info(`Creating tag${Logger.COLORS.magenta}`, tagName);
-						exec('git', ['tag', tagName]);
-					} catch (e) {
-						Logger.error('Failed to commit and tag:', e);
-					} finally {
-						// Restore previously stashed changes
-						if (hasChanges) {
-							exec('git', ['stash', 'pop']);
-						}
-					}
-
-					Logger.info(`Version bumped to${Logger.COLORS.magenta}`, newVersion);
-				} else {
-					// In tag-only mode, just create the tag without committing
 					const tagName = config.tag.name.replace('%v', newVersion);
-					Logger.info(`Creating tag for current version${Logger.COLORS.magenta}`, tagName);
+					Logger.info(`Creating tag${Logger.COLORS.magenta}`, tagName);
 					exec('git', ['tag', tagName]);
+				} catch (e) {
+					Logger.error('Failed to commit and tag:', e);
+				} finally {
+					// Restore previously stashed changes
+					if (hasChanges) {
+						exec('git', ['stash', 'pop']);
+					}
 				}
+
+				Logger.info(`Version bumped to${Logger.COLORS.magenta}`, newVersion);
 				//endregion
 			} catch (error) {
 				Logger.error(error);
 				process.exit(1);
 			}
+		});
+
+	program
+		.command('tag')
+		.description('create a tag for the current version without bumping the version')
+		.option('-v, --verbose', 'enable verbose logging')
+		.option('--dry-run', 'dry run')
+		.action(async (options: TagOptions) => {
+			if (options.verbose) {
+				Logger.level('debug');
+			}
+
+			try {
+				// Load config
+				const cliConfig: DeepPartial<VerzConfig> = {
+					dryRun: options.dryRun,
+				};
+
+				await Config.load(cliConfig);
+
+				const config = Config.get();
+				const packagePath = join(process.cwd(), 'package.json');
+				const packageContent = readFileSync(packagePath, 'utf-8');
+				const packageJson = JSON.parse(packageContent);
+
+				const currentVersion = packageJson.version;
+				if (!currentVersion) {
+					throw new Error('No version found in package.json');
+				}
+
+				Logger.info(`Current version${Logger.COLORS.magenta}`, currentVersion);
+
+				// Create tag for current version
+				const tagName = config.tag.name.replace('%v', currentVersion);
+				Logger.info(`Creating tag for current version${Logger.COLORS.magenta}`, tagName);
+
+				if (!config.dryRun) {
+					exec('git', ['tag', tagName]);
+				}
+			} catch (error) {
+				Logger.error(error);
+				process.exit(1);
+			}
+		});
+
+	program
+		.command('help')
+		.description('display help')
+		.action(() => {
+			program.outputHelp();
 		});
 
 	program.parse();

@@ -30,13 +30,27 @@ npx verz --<type>
 
 Run **verz** in the root of your project:
 
+### Version Bumping
+
 ```bash
+verz version --<type> [options]
+# or simply
 verz --<type> [options]
 ```
 
-**`<type>`** is the type of version bump. (see [semver](https://www.npmjs.com/package/semver))
+**`<type>`** is the type of version bump (see [semver](https://www.npmjs.com/package/semver))
+
+### Tagging
+
+Create a git tag for the current version without bumping:
+
+```bash
+verz tag [options]
+```
 
 ## 📑 Options
+
+### Version Options
 
 | Option             | Description                                                                 | Default             |
 |--------------------| --------------------------------------------------------------------------- |---------------------|
@@ -45,10 +59,16 @@ verz --<type> [options]
 | `--major`          | Bump the major version (x.0.0)                                              | `false`             |
 | `--prerelease [preid]` | Bump to prerelease version (e.g., 1.0.0 -> 1.0.1-rc.0). Optionally specify preid (alpha, beta, rc, etc.) | `false` |
 | `--version <version>`  | Set exact version (e.g., 1.2.3)                                         |                     |
-| `--tag-only`       | Create a git tag for the current version without bumping the version     | `false`             |
 | `--commit.message` | Custom commit message. Use `%v` for version.                                | `chore: release %v` |
 | `-v, --verbose`    | Enable verbose debug logging.                                               | `false`             |
 | `--dry-run`        | Run without writing files or committing.                                    | `false`             |
+
+### Tag Options
+
+| Option             | Description                                                                 | Default             |
+|--------------------| --------------------------------------------------------------------------- |---------------------|
+| `-v, --verbose`    | Enable verbose debug logging.                                               | `false`             |
+| `--dry-run`        | Run without creating the tag.                                               | `false`             |
 
 ## ⚙️ Configuration
 
@@ -72,29 +92,55 @@ The configuration file structure:
 
 ## ✅ Examples
 
+### Version Bumping Examples
+
 Bump the patch version:
 
 ```bash
 verz --patch
+# or
+verz version --patch
 ```
 
 Bump to a prerelease version (defaults to 'rc' preid):
 
 ```bash
 verz --prerelease
+# or
+verz version --prerelease
 ```
 
 Bump to a specific prerelease type:
 
 ```bash
 verz --prerelease beta
+# or
+verz version --prerelease beta
 ```
 
 Set an exact version:
 
 ```bash
 verz --version 2.0.0
+# or
+verz version --version 2.0.0
 ```
+
+### Tagging Examples
+
+Create a tag for the current version:
+
+```bash
+verz tag
+```
+
+Create a tag with verbose output:
+
+```bash
+verz tag --verbose
+```
+
+### Other Examples
 
 Bump the minor version with a custom commit message:
 
