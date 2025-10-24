@@ -6,18 +6,22 @@ import {deepMerge} from '@/lib/utils';
 
 export type VerzConfig = {
 	commit: {
+		enabled: boolean;
 		message: string;
 	};
 	tag: {
+		enabled: boolean;
 		name: string;
 	};
 	dryRun: boolean;
 };
 const defaultConfig: VerzConfig = {
 	commit: {
+		enabled: true,
 		message: 'chore: version %v',
 	},
 	tag: {
+		enabled: true,
 		name: '%v',
 	},
 	dryRun: false,
