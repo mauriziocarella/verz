@@ -15,14 +15,14 @@ type CommonOptions = {
 	dryRun?: boolean;
 };
 type VersionOptions = CommonOptions & {
-	'patch'?: boolean;
-	'minor'?: boolean;
-	'major'?: boolean;
-	'prerelease'?: boolean | string;
-	'version'?: string;
-	'commit-message'?: string;
-	'tag-name'?: string;
-	'check-remote'?: boolean;
+	patch?: boolean;
+	minor?: boolean;
+	major?: boolean;
+	prerelease?: boolean | string;
+	version?: string;
+	commitMessage?: string;
+	tagName?: string;
+	checkRemote?: boolean;
 };
 
 type TagOptions = CommonOptions & {
@@ -46,7 +46,7 @@ async function main(): Promise<void> {
 		.option('--version <version>', 'set exact version (e.g., 1.2.3)')
 		.option('--commit-message <message>', 'custom commit message')
 		.option('--tag-name <name>', 'custom tag name')
-		.option('--check-remote', 'check if branch is up to date with remote before versioning', true)
+		.option('--no-check-remote', 'skip check if branch is up to date with remote before versioning')
 		.option('-v, --verbose', 'enable verbose logging')
 		.option('--dry-run', 'dry run')
 		.action(async (options: VersionOptions) => {
@@ -104,13 +104,13 @@ async function main(): Promise<void> {
 
 				const cliConfig: DeepPartial<VerzConfig> = {
 					commit: {
-						message: options['commit-message'],
+						message: options['commitMessage'],
 					},
 					tag: {
-						name: options['tag-name'],
+						name: options['tagName'],
 					},
 					dryRun: options['dryRun'],
-					checkRemote: options['check-remote'],
+					checkRemote: options['checkRemote'],
 				};
 
 				await Config.load(cliConfig);
