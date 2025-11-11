@@ -59,7 +59,7 @@ class Config {
 	async load(override: DeepPartial<VerzConfig> = {}): Promise<VerzConfig> {
 		const fileConfig = await this.fileLoad();
 
-		this.config = deepMerge(deepMerge(this.config, fileConfig), override);
+		this.config = deepMerge(this.config, fileConfig, override);
 
 		return this.config;
 	}

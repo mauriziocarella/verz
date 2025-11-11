@@ -1,15 +1,20 @@
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const deepMerge = (target: any, source: any): any => {
-	if (typeof source !== 'object' || source === null) return source;
-	const output = {...target};
-	for (const key in source) {
-		if (source[key] === undefined || source[key] === null) continue;
+export const isObject = (item: any) => {
+	return item && typeof item === 'object' && !Array.isArray(item);
+};
 
-		if (typeof source[key] === 'object' && !Array.isArray(source[key])) {
-			output[key] = deepMerge(output[key] || {}, source[key]);
-		} else {
-			output[key] = source[key];
+export const deepMerge = (target: any, ...sources: any[]): any => {
+	if (!sources.length) return target;
+	const source = sources.shift();
+
+	if (isObject(target) && isObject(source)) {
+		for (const key in source) {
+			if (isObject(source[key])) {
+				if (!target[key]) Object.assign(target, {[key]: {}});
+				deepMerge(target[key], source[key]);
+			} else if (source[key] !== undefined) {
+				Object.assign(target, {[key]: source[key]});
+			}
 		}
 	}
-	return output;
+	return deepMerge(target, ...sources);
 };
