@@ -152,14 +152,9 @@ async function main(): Promise<void> {
 
 					// Check if remote branch exists
 					try {
-						exec('git', ['rev-parse', '--verify', remoteBranch]);
+						const commitsBehind = parseInt(exec('git', ['rev-list', `HEAD..${remoteBranch}`, '--count']));
 
-						// Compare local and remote branches
-						const localHash = exec('git', ['rev-parse', currentBranch]);
-						const remoteHash = exec('git', ['rev-parse', remoteBranch]);
-						const baseHash = exec('git', ['merge-base', currentBranch, remoteBranch]);
-
-						if (localHash !== remoteHash && localHash !== baseHash) {
+						if (commitsBehind > 0) {
 							Logger.error(
 								`Local branch '${currentBranch}' is not up to date with remote. Please pull the latest changes first.`,
 							);
