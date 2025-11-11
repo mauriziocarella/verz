@@ -197,7 +197,7 @@ async function main(): Promise<void> {
 						Logger.info(`Committing changes with message${Logger.COLORS.magenta}`, commitMessage);
 						exec('git', ['commit', '-m', commitMessage]);
 					} else {
-						Logger.info('Skipping commit (commit.enabled is false)');
+						Logger.info(`${Logger.COLORS.cyan}Skipping commit (commit.enabled is false)`);
 					}
 
 					if (config.tag.enabled) {
@@ -205,7 +205,7 @@ async function main(): Promise<void> {
 						Logger.info(`Creating tag${Logger.COLORS.magenta}`, tagName);
 						exec('git', ['tag', tagName]);
 					} else {
-						Logger.info('Skipping tag creation (tag.enabled is false)');
+						Logger.info(`${Logger.COLORS.cyan}Skipping tag creation (tag.enabled is false)`);
 					}
 				} catch (e) {
 					Logger.error('Failed to commit and tag:', e);
