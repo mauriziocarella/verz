@@ -20,11 +20,14 @@ type VersionOptions = CommonOptions & {
 	'major'?: boolean;
 	'prerelease'?: boolean | string;
 	'version'?: string;
-	'commit.message'?: string;
+	'commit-message'?: string;
+	'tag-name'?: string;
 	'check-remote'?: boolean;
 };
 
-type TagOptions = CommonOptions & {};
+type TagOptions = CommonOptions & {
+	'tag-name'?: string;
+};
 
 async function main(): Promise<void> {
 	const program = new Command();
@@ -41,7 +44,8 @@ async function main(): Promise<void> {
 		.option('--major', 'bump major version')
 		.option('--prerelease [preid]', 'bump to prerelease version (optionally specify preid: alpha, beta, rc, etc.)')
 		.option('--version <version>', 'set exact version (e.g., 1.2.3)')
-		.option('--commit.message <message>', 'custom commit message')
+		.option('--commit-message <message>', 'custom commit message')
+		.option('--tag-name <name>', 'custom tag name')
 		.option('--check-remote', 'check if branch is up to date with remote before versioning', true)
 		.option('-v, --verbose', 'enable verbose logging')
 		.option('--dry-run', 'dry run')
@@ -100,7 +104,10 @@ async function main(): Promise<void> {
 
 				const cliConfig: DeepPartial<VerzConfig> = {
 					commit: {
-						message: options['commit.message'],
+						message: options['commit-message'],
+					},
+					tag: {
+						name: options['tag-name'],
 					},
 					dryRun: options['dryRun'],
 					checkRemote: options['check-remote'],
@@ -227,6 +234,7 @@ async function main(): Promise<void> {
 	program
 		.command('tag')
 		.description('create a tag for the current version without bumping the version')
+		.option('--tag-name <name>', 'custom tag name')
 		.option('-v, --verbose', 'enable verbose logging')
 		.option('--dry-run', 'dry run')
 		.action(async (options: TagOptions) => {
@@ -240,6 +248,9 @@ async function main(): Promise<void> {
 			try {
 				// Load config
 				const cliConfig: DeepPartial<VerzConfig> = {
+					tag: {
+						name: options['tag-name'],
+					},
 					dryRun: options.dryRun,
 				};
 
