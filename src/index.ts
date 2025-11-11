@@ -214,6 +214,8 @@ async function main(): Promise<void> {
 					} else {
 						Logger.info(`${Logger.COLORS.cyan}Skipping tag creation (tag.enabled is false)`);
 					}
+
+					Logger.info(`Version bumped to${Logger.COLORS.magenta}`, newVersion);
 				} catch (e) {
 					Logger.error('Failed to commit and tag:', e);
 				} finally {
@@ -222,8 +224,6 @@ async function main(): Promise<void> {
 						exec('git', ['stash', 'pop']);
 					}
 				}
-
-				Logger.info(`Version bumped to${Logger.COLORS.magenta}`, newVersion);
 				//endregion
 			} catch (error) {
 				Logger.error(error);
