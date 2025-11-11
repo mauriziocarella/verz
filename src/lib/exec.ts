@@ -12,17 +12,20 @@ const exec = (command: string, args: (string | number)[], options?: {ignoreRetur
 		stdio: 'pipe',
 	});
 
+	const stdout = p.stdout?.toString() ?? '';
+	const stderr = p.stderr?.toString() ?? '';
+
 	if (!options?.ignoreReturnCode) {
 		if (p.error) {
 			throw p.error;
 		}
 
 		if (p.status !== 0) {
-			throw new Error(`Command failed with exit code ${p.status}`);
+			const output = [stdout, stderr].filter(Boolean).join('\n');
+
+			throw new Error(`Command \`${command}\` failed with exit code ${p.status}${output ? `:\n${output}` : ''}`);
 		}
 	}
-
-	const stdout = p.stdout?.toString() ?? '';
 
 	if (stdout) {
 		// logger.debug('Command output:', stdout);

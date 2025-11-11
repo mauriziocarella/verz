@@ -216,8 +216,10 @@ async function main(): Promise<void> {
 					}
 
 					Logger.info(`Version bumped to${Logger.COLORS.magenta}`, newVersion);
-				} catch (e) {
-					Logger.error('Failed to commit and tag:', e);
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				} catch (e: any) {
+					Logger.error('Failed to commit and tag.', e?.message);
+					Logger.debug(e);
 				} finally {
 					// Restore previously stashed changes
 					if (hasChanges) {
