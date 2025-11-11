@@ -14,6 +14,7 @@ export type VerzConfig = {
 		name: string;
 	};
 	dryRun: boolean;
+	checkRemote: boolean;
 };
 const defaultConfig: VerzConfig = {
 	commit: {
@@ -25,6 +26,7 @@ const defaultConfig: VerzConfig = {
 		name: '%v',
 	},
 	dryRun: false,
+	checkRemote: true,
 };
 
 class Config {

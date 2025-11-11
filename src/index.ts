@@ -21,6 +21,7 @@ type VersionOptions = CommonOptions & {
 	'prerelease'?: boolean | string;
 	'version'?: string;
 	'commit.message'?: string;
+	'check-remote'?: boolean;
 };
 
 type TagOptions = CommonOptions & {};
@@ -41,6 +42,7 @@ async function main(): Promise<void> {
 		.option('--prerelease [preid]', 'bump to prerelease version (optionally specify preid: alpha, beta, rc, etc.)')
 		.option('--version <version>', 'set exact version (e.g., 1.2.3)')
 		.option('--commit.message <message>', 'custom commit message')
+		.option('--check-remote', 'check if branch is up to date with remote before versioning', true)
 		.option('-v, --verbose', 'enable verbose logging')
 		.option('--dry-run', 'dry run')
 		.action(async (options: VersionOptions) => {
@@ -101,6 +103,7 @@ async function main(): Promise<void> {
 						message: options['commit.message'],
 					},
 					dryRun: options['dryRun'],
+					checkRemote: options['check-remote'],
 				};
 
 				await Config.load(cliConfig);
@@ -128,6 +131,36 @@ async function main(): Promise<void> {
 					}
 
 					newVersion = calculatedVersion;
+				}
+
+				// Check if branch is up to date with remote
+				if (config.checkRemote) {
+					Logger.debug('Checking if branch is up to date with remote...');
+					// Fetch the latest changes from remote
+					exec('git', ['fetch']);
+
+					// Get current branch name
+					const currentBranch = exec('git', ['rev-parse', '--abbrev-ref', 'HEAD']).trim();
+					const remoteBranch = `origin/${currentBranch}`;
+
+					// Check if remote branch exists
+					try {
+						exec('git', ['rev-parse', '--verify', remoteBranch]);
+
+						// Compare local and remote branches
+						const localHash = exec('git', ['rev-parse', currentBranch]);
+						const remoteHash = exec('git', ['rev-parse', remoteBranch]);
+						const baseHash = exec('git', ['merge-base', currentBranch, remoteBranch]);
+
+						if (localHash !== remoteHash && localHash !== baseHash) {
+							Logger.error(
+								`Local branch '${currentBranch}' is not up to date with remote. Please pull the latest changes first.`,
+							);
+							process.exit(1);
+						}
+					} catch (_) {
+						Logger.warn(`Remote branch ${remoteBranch} not found, skipping remote check`);
+					}
 				}
 
 				// Check if package.json has uncommitted changes
