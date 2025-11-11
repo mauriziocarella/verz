@@ -52,23 +52,26 @@ verz tag [options]
 
 ### Version Options
 
-| Option             | Description                                                                 | Default             |
-|--------------------| --------------------------------------------------------------------------- |---------------------|
-| `--patch`          | Bump the patch version (0.0.x)                                              | `false`             |
-| `--minor`          | Bump the minor version (0.x.0)                                              | `false`             |
-| `--major`          | Bump the major version (x.0.0)                                              | `false`             |
-| `--prerelease [preid]` | Bump to prerelease version (e.g., 1.0.0 -> 1.0.1-rc.0). Optionally specify preid (alpha, beta, rc, etc.) | `false` |
-| `--version <version>`  | Set exact version (e.g., 1.2.3)                                         |                     |
-| `--commit.message` | Custom commit message. Use `%v` for version.                                | `chore: release %v` |
-| `-v, --verbose`    | Enable verbose debug logging.                                               | `false`             |
-| `--dry-run`        | Run without writing files or committing.                                    | `false`             |
+| Option                 | Description                                                                                              | Default             |
+|------------------------|----------------------------------------------------------------------------------------------------------|---------------------|
+| `--patch`              | Bump the patch version (0.0.x)                                                                           | `false`             |
+| `--minor`              | Bump the minor version (0.x.0)                                                                           | `false`             |
+| `--major`              | Bump the major version (x.0.0)                                                                           | `false`             |
+| `--prerelease [preid]` | Bump to prerelease version (e.g., 1.0.0 -> 1.0.1-rc.0). Optionally specify preid (alpha, beta, rc, etc.) | `false`             |
+| `--version <version>`  | Set exact version (e.g., 1.2.3)                                                                          |                     |
+| `--commit-message`     | Custom commit message. Use `%v` for version.                                                             | `chore: release %v` |
+| `--tag-name`           | Custom tag name. Use `%v` for version.                                                                   | `%v`                |
+| `--no-check-remote`    | Skip check if current branch is up-to-date with remote branch                                            | `false`             |
+| `-v, --verbose`        | Enable verbose debug logging.                                                                            | `false`             |
+| `--dry-run`            | Run without writing files or committing.                                                                 | `false`             |
 
 ### Tag Options
 
-| Option             | Description                                                                 | Default             |
-|--------------------| --------------------------------------------------------------------------- |---------------------|
-| `-v, --verbose`    | Enable verbose debug logging.                                               | `false`             |
-| `--dry-run`        | Run without creating the tag.                                               | `false`             |
+| Option          | Description                            | Default |
+|-----------------|----------------------------------------|---------|
+| `--tag-name`    | Custom tag name. Use `%v` for version. | `%v`    |
+| `-v, --verbose` | Enable verbose debug logging.          | `false` |
+| `--dry-run`     | Run without creating the tag.          | `false` |
 
 ## ⚙️ Configuration
 
