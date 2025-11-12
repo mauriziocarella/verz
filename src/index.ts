@@ -25,6 +25,12 @@ type VersionOptions = CommonOptions & {
 	checkRemote?: boolean;
 };
 
+type ReleaseOptions = CommonOptions & {
+	prefix?: string;
+	commitMessage?: string;
+	tagName?: string;
+};
+
 type TagOptions = CommonOptions & {
 	'tag-name'?: string;
 };
@@ -222,6 +228,127 @@ async function main(): Promise<void> {
 					}
 				}
 				//endregion
+			} catch (error) {
+				Logger.error(error);
+				process.exit(1);
+			}
+		});
+
+	program
+		.command('release')
+		.description('bump the release number for a tenant-specific version')
+		.option('--prefix <prefix>', 'release prefix')
+		.option('--commit-message <message>', 'custom commit message')
+		.option('--tag-name <name>', 'custom tag name')
+		.option('-v, --verbose', 'enable verbose logging')
+		.option('--dry-run', 'dry run')
+		.action(async (options: ReleaseOptions) => {
+			if (options.verbose) {
+				Logger.level('debug');
+			}
+			if (options.dryRun) {
+				Logger.info(`${Logger.COLORS.cyan}Dry run enabled. No changes will be made.`);
+			}
+
+			try {
+				const cliConfig: DeepPartial<VerzConfig> = {
+					commit: {
+						message: options['commitMessage'],
+					},
+					tag: {
+						name: options['tagName'],
+					},
+					release: {
+						prefix: options['prefix'],
+					},
+					dryRun: options['dryRun'],
+					checkRemote: false, // Skip remote check for release command
+				};
+
+				await Config.load(cliConfig);
+
+				const config = Config.get();
+				const packagePath = join(process.cwd(), 'package.json');
+				const packageContent = readFileSync(packagePath, 'utf-8');
+				const packageJson = JSON.parse(packageContent) as {version: string};
+
+				Logger.info(`Current version${Logger.COLORS.magenta}`, packageJson.version);
+
+				// All'interno del comando 'release'
+				const currentVersion = packageJson.version;
+				const versionParts = currentVersion.split('-');
+
+				// Estrai la versione base (tutto prima del primo trattino)
+				const baseVersion = versionParts[0];
+				let newVersion;
+
+				// Se è specificato un prefisso
+				if (config.release.prefix) {
+					// Cerca una versione esistente con lo stesso prefisso
+					const existingPrefixVersion = versionParts.find((part) => part.startsWith(config.release.prefix));
+
+					if (existingPrefixVersion) {
+						// Se esiste già una versione con questo prefisso, incrementa il numero di release
+						const releaseMatch = existingPrefixVersion.match(/r(\d+)$/);
+						if (!releaseMatch) {
+							Logger.error(`Invalid release format in version: ${currentVersion}`);
+							return process.exit(1);
+						}
+						const releaseNumber = parseInt(releaseMatch[1], 10) + 1;
+						newVersion = `${baseVersion}-${config.release.prefix}-r${releaseNumber}`;
+					} else {
+						// Se non esiste una versione con questo prefisso, crea la prima release
+						newVersion = `${baseVersion}-${config.release.prefix}-r1`;
+					}
+				}
+				// Se non è specificato alcun prefisso
+				else {
+					// Cerca una release senza prefisso
+					const simpleReleaseMatch = versionParts.find((part) => /^r\d+$/.test(part));
+
+					if (simpleReleaseMatch) {
+						// Se esiste già una release senza prefisso, incrementa il numero
+						const releaseNumber = parseInt(simpleReleaseMatch.substring(1), 10) + 1;
+						newVersion = `${baseVersion}-r${releaseNumber}`;
+					} else {
+						// Se non esiste una release senza prefisso, crea la prima
+						newVersion = `${baseVersion}-r1`;
+					}
+				}
+
+				// Aggiorna la versione nel package.json
+				packageJson.version = newVersion;
+
+				if (!config.dryRun) {
+					writeFileSync(packagePath, JSON.stringify(packageJson, null, 2) + '\n');
+				}
+
+				Logger.info(`Bumped ${config.release.prefix} release to ${Logger.COLORS.magenta}${newVersion}`);
+
+				// Commit and tag
+				try {
+					exec('git', ['add', 'package.json']);
+
+					if (config.commit.enabled) {
+						const commitMessage = config.commit.message.replace('%v', newVersion);
+						Logger.info(`Committing changes with message${Logger.COLORS.magenta}`, commitMessage);
+
+						exec('git', ['commit', '-m', commitMessage]);
+					}
+
+					if (config.tag.enabled) {
+						const tagName = config.tag.name.replace('%v', newVersion);
+						Logger.info(`Creating tag${Logger.COLORS.magenta}`, tagName);
+
+						exec('git', ['tag', '-a', tagName, '-m', `Release ${newVersion}`]);
+					}
+
+					Logger.success(`Successfully released ${newVersion}`);
+				} catch (error) {
+					Logger.error('Failed to commit or tag the release:');
+					Logger.error(error);
+					return process.exit(1);
+				}
 			} catch (error) {
 				Logger.error(error);
 				process.exit(1);

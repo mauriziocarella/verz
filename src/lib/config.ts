@@ -13,6 +13,9 @@ export type VerzConfig = {
 		enabled: boolean;
 		name: string;
 	};
+	release: {
+		prefix: string;
+	};
 	dryRun: boolean;
 	checkRemote: boolean;
 };
@@ -24,6 +27,9 @@ const defaultConfig: VerzConfig = {
 	tag: {
 		enabled: true,
 		name: '%v',
+	},
+	release: {
+		prefix: '',
 	},
 	dryRun: false,
 	checkRemote: true,

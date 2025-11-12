@@ -40,6 +40,14 @@ verz --<type> [options]
 
 **`<type>`** is the type of version bump (see [semver](https://www.npmjs.com/package/semver))
 
+### Release Versioning
+
+Bump the release number for the current version, with optional tenant prefix:
+
+```bash
+verz release [options]
+```
+
 ### Tagging
 
 Create a git tag for the current version without bumping:
@@ -65,6 +73,16 @@ verz tag [options]
 | `-v, --verbose`        | Enable verbose debug logging.                                                                            | `false`             |
 | `--dry-run`            | Run without writing files or committing.                                                                 | `false`             |
 
+### Release Options
+
+| Option              | Description                                   | Default             |
+|---------------------|-----------------------------------------------|---------------------|
+| `--prefix <prefix>` | Optional prefix for release-specific versions |                     |
+| `--commit-message`  | Custom commit message. Use `%v` for version.  | `chore: release %v` |
+| `--tag-name`        | Custom tag name. Use `%v` for version.        | `%v`                |
+| `-v, --verbose`     | Enable verbose debug logging.                 | `false`             |
+| `--dry-run`         | Run without writing files or committing.      | `false`             |
+
 ### Tag Options
 
 | Option          | Description                            | Default |
@@ -81,15 +99,32 @@ You can configure **verz** using a configuration file. Create one of the followi
 - `verz.config.mjs`
 - `verz.config.json`
 
+### Configuration Options
+
+| Option         | Description                                                                 | Default             |
+|----------------|-----------------------------------------------------------------------------|---------------------|
+| `commit`       | Commit configuration                                                       | `{ enabled: true, message: 'chore: release %v' }` |
+| `tag`          | Tag configuration                                                          | `{ enabled: true, name: '%v' }` |
+| `release`      | Release configuration                                                      | `{ prefix: '' }` |
+| `dryRun`       | Run without making changes (for testing)                                    | `false` |
+| `checkRemote`  | Check if branch is up-to-date with remote before versioning                 | `true` |
+
 The configuration file structure:
 ```json
 {
   "commit": {
+    "enabled": true,
     "message": "chore: version %v"
   },
   "tag": {
+    "enabled": true,
     "name": "%v"
-  }
+  },
+  "release": {
+    "prefix": ""
+  },
+  "dryRun": false,
+  "checkRemote": true
 }
 ```
 
@@ -127,6 +162,22 @@ Set an exact version:
 verz --version 2.0.0
 # or
 verz version --version 2.0.0
+```
+
+### Release Examples
+
+Bump release number for the current version:
+
+```bash
+verz release
+# Example: 1.0.0 → 1.0.0-r1 → 1.0.0-r2
+```
+
+Bump release number with a prefix:
+
+```bash
+verz release --prefix tenant
+# Example: 1.0.0 → 1.0.0-tenant-r1 → 1.0.0-tenant-r2
 ```
 
 ### Tagging Examples
