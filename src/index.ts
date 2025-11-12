@@ -121,7 +121,7 @@ async function main(): Promise<void> {
 				const config = Config.get();
 				const packagePath = join(process.cwd(), 'package.json');
 				const packageContent = readFileSync(packagePath, 'utf-8');
-				const packageJson = JSON.parse(packageContent);
+				const packageJson = JSON.parse(packageContent) as {version: string};
 
 				Logger.info(`Current version${Logger.COLORS.magenta}`, packageJson.version);
 
@@ -256,7 +256,7 @@ async function main(): Promise<void> {
 				const config = Config.get();
 				const packagePath = join(process.cwd(), 'package.json');
 				const packageContent = readFileSync(packagePath, 'utf-8');
-				const packageJson = JSON.parse(packageContent);
+				const packageJson = JSON.parse(packageContent) as {version: string};
 
 				const currentVersion = packageJson.version;
 				if (!currentVersion) {
