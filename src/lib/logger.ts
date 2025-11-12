@@ -13,15 +13,30 @@ const COLORS = {
 
 export type LogLevel = 'error' | 'warn' | 'info' | 'debug';
 
+const PREFIX = {
+	debug: '[DEBUG]',
+	info: '[INFO]',
+	warn: '[WARN]',
+	error: '[ERROR]',
+	success: '[SUCCESS]',
+};
+
 class Logger {
 	COLORS = COLORS;
 
 	constructor(private _level: LogLevel = 'info') {}
 
+	private pad(content: string) {
+		return content.padEnd(
+			Object.values(PREFIX).reduce((max, str) => Math.max(max, str.length), 0),
+			' ',
+		);
+	}
+
 	debug(...args: unknown[]): void {
 		if (this.shouldLog('debug'))
 			console.log(
-				`${COLORS.gray}[DEBUG]\t${COLORS.reset}`,
+				`${COLORS.gray}${this.pad(PREFIX.debug)}${COLORS.reset}`,
 				...args.map((arg) => (typeof arg === 'object' ? inspect(arg) : arg)),
 				COLORS.reset,
 			);
@@ -30,7 +45,7 @@ class Logger {
 	info(...args: unknown[]): void {
 		if (this.shouldLog('info'))
 			console.log(
-				`${COLORS.blue}[INFO]\t${COLORS.reset}`,
+				`${COLORS.blue}${this.pad(PREFIX.info)}${COLORS.reset}`,
 				...args.map((arg) => (typeof arg === 'object' ? inspect(arg) : arg)),
 				COLORS.reset,
 			);
@@ -39,7 +54,7 @@ class Logger {
 	warn(...args: unknown[]): void {
 		if (this.shouldLog('warn'))
 			console.warn(
-				`${COLORS.yellow}[WARN]\t${COLORS.reset}`,
+				`${COLORS.yellow}${this.pad(PREFIX.warn)}${COLORS.reset}`,
 				...args.map((arg) => (typeof arg === 'object' ? inspect(arg) : arg)),
 				COLORS.reset,
 			);
@@ -48,7 +63,16 @@ class Logger {
 	error(...args: unknown[]): void {
 		if (this.shouldLog('error'))
 			console.error(
-				`${COLORS.red}[ERROR]\t${COLORS.reset}`,
+				`${COLORS.red}${this.pad(PREFIX.error)}${COLORS.reset}`,
+				...args.map((arg) => (typeof arg === 'object' ? inspect(arg) : arg)),
+				COLORS.reset,
+			);
+	}
+
+	success(...args: unknown[]): void {
+		if (this.shouldLog('info'))
+			console.info(
+				`${COLORS.green}${this.pad(PREFIX.success)}${COLORS.reset}`,
 				...args.map((arg) => (typeof arg === 'object' ? inspect(arg) : arg)),
 				COLORS.reset,
 			);

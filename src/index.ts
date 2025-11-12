@@ -210,7 +210,7 @@ async function main(): Promise<void> {
 						Logger.info(`${Logger.COLORS.cyan}Skipping tag creation (tag.enabled is false)`);
 					}
 
-					Logger.info(`Version bumped to${Logger.COLORS.magenta}`, newVersion);
+					Logger.success(`Successfully bumped version to${Logger.COLORS.magenta}`, newVersion);
 					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				} catch (e: any) {
 					Logger.error('Failed to commit and tag.', e?.message);
@@ -278,6 +278,8 @@ async function main(): Promise<void> {
 				if (!config.dryRun) {
 					exec('git', ['tag', tagName]);
 				}
+
+				Logger.success(`Tag created successfully: ${tagName}`);
 			} catch (error) {
 				Logger.error(error);
 				return process.exit(1);
