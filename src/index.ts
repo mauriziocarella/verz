@@ -10,6 +10,8 @@ import Config, {type VerzConfig} from '@/lib/config';
 import type {DeepPartial} from '@/lib/types';
 import * as process from 'node:process';
 
+const REGEX_RELASE = /r(\d+)$/;
+
 type CommonOptions = {
 	verbose?: boolean;
 	dryRun?: boolean;
@@ -290,9 +292,14 @@ async function main(): Promise<void> {
 
 					if (existingPrefixVersion) {
 						// Se esiste già una versione con questo prefisso, incrementa il numero di release
-						const releaseMatch = existingPrefixVersion.match(/r(\d+)$/);
+						const releasePart = versionParts.find((part) => part.match(REGEX_RELASE));
+						if (!releasePart) {
+							Logger.error(`Invalid release format in version${Logger.COLORS.magenta}`, currentVersion);
+							return process.exit(1);
+						}
+						const releaseMatch = releasePart.match(REGEX_RELASE);
 						if (!releaseMatch) {
-							Logger.error(`Invalid release format in version: ${currentVersion}`);
+							Logger.error(`Invalid release format in version${Logger.COLORS.magenta}`, currentVersion);
 							return process.exit(1);
 						}
 						const releaseNumber = parseInt(releaseMatch[1], 10) + 1;
