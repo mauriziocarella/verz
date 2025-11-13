@@ -22,7 +22,7 @@ type VersionOptions = CommonOptions & {
 	version?: string;
 	commitMessage?: string;
 	tagName?: string;
-	checkRemote?: boolean;
+	remoteFetch?: boolean;
 };
 
 type ReleaseOptions = CommonOptions & {
@@ -52,7 +52,7 @@ async function main(): Promise<void> {
 		.option('--version <version>', 'set exact version (e.g., 1.2.3)')
 		.option('--commit-message <message>', 'custom commit message')
 		.option('--tag-name <name>', 'custom tag name')
-		.option('--no-check-remote', 'skip check if branch is up to date with remote before versioning')
+		.option('--no-remote-fetch', 'skip check if branch is up to date with remote before versioning')
 		.option('-v, --verbose', 'enable verbose logging')
 		.option('--dry-run', 'dry run')
 		.action(async (options: VersionOptions) => {
@@ -116,7 +116,9 @@ async function main(): Promise<void> {
 						name: options['tagName'],
 					},
 					dryRun: options['dryRun'],
-					checkRemote: options['checkRemote'],
+					remote: {
+						fetch: options['remoteFetch'],
+					},
 				};
 
 				await Config.load(cliConfig);
@@ -147,7 +149,7 @@ async function main(): Promise<void> {
 				}
 
 				// Check if branch is up to date with remote
-				if (config.checkRemote) {
+				if (config.remote?.fetch) {
 					Logger.debug('Checking if branch is up to date with remote...');
 					// Fetch the latest changes from remote
 					exec('git', ['fetch']);
@@ -262,7 +264,6 @@ async function main(): Promise<void> {
 						prefix: options['prefix'],
 					},
 					dryRun: options['dryRun'],
-					checkRemote: false, // Skip remote check for release command
 				};
 
 				await Config.load(cliConfig);

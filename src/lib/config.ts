@@ -17,7 +17,9 @@ export type VerzConfig = {
 		prefix: string;
 	};
 	dryRun: boolean;
-	checkRemote: boolean;
+	remote: {
+		fetch: boolean;
+	};
 };
 const defaultConfig: VerzConfig = {
 	commit: {
@@ -32,7 +34,9 @@ const defaultConfig: VerzConfig = {
 		prefix: '',
 	},
 	dryRun: false,
-	checkRemote: true,
+	remote: {
+		fetch: true,
+	},
 };
 
 class Config {
