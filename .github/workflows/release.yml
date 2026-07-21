@@ -34,12 +34,12 @@ jobs:
             -   name: Build library
                 run: pnpm build
 
-            -   name: Publish to npm
-                run: pnpm publish --no-git-checks --access public
-                env:
-                    NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
             -   name: Create GitHub release
                 run: gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --generate-notes
                 env:
                     GH_TOKEN: ${{ github.token }}
+
+            -   name: Publish to npm
+                run: pnpm publish --no-git-checks --access public
+                env:
+                    NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
