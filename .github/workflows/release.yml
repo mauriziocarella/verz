@@ -8,6 +8,7 @@ on:
 
 permissions:
     contents: write
+    id-token: write
 
 jobs:
     publish:
@@ -20,7 +21,7 @@ jobs:
             -   name: Use Node.js
                 uses: actions/setup-node@v4
                 with:
-                    node-version: '22'
+                    node-version: '24'
                     registry-url: 'https://registry.npmjs.org'
 
             -   name: Install pnpm
@@ -34,12 +35,13 @@ jobs:
             -   name: Build library
                 run: pnpm build
 
-            -   name: Create GitHub release
-                run: gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --generate-notes
-                env:
-                    GH_TOKEN: ${{ github.token }}
+            -   name: Update npm
+                run: npm install -g npm@latest
 
             -   name: Publish to npm
-                run: pnpm publish --no-git-checks --access public
+                run: npm publish --access public
+
+            -   name: Create GitHub release
+                run: gh release view "$GITHUB_REF_NAME" || gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --generate-notes
                 env:
-                    NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+                    GH_TOKEN: ${{ github.token }}
