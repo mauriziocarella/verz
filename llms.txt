@@ -1,0 +1,138 @@
+# verz
+
+> Semver CLI for JavaScript and TypeScript package versioning.
+
+`verz` updates the root `package.json` version, optionally commits the change, and optionally creates a Git tag. It is intended to run from the root of a Node.js project that has a `package.json` with a valid semver `version`.
+
+## Primary Use Cases
+
+- Bump a package version using semver release types: `patch`, `minor`, `major`, or `prerelease`.
+- Set an exact valid semver version.
+- Create release-number versions such as `1.0.0-r1` or tenant-prefixed releases such as `1.0.0-acme-r1`.
+- Create a Git tag for the current package version without changing the version.
+- Dry-run any supported workflow before writing files or creating Git objects.
+
+## Commands
+
+```bash
+verz --patch
+verz --minor
+verz --major
+verz --prerelease
+verz --prerelease beta
+verz --version 2.0.0
+verz release
+verz release --prefix tenant
+verz tag
+```
+
+`verz version` is the default command, so `verz --patch` and `verz version --patch` are equivalent.
+
+## Version Command
+
+The version command accepts exactly one version-change option:
+
+- `--patch`: increments `x.y.z` to `x.y.(z+1)`.
+- `--minor`: increments `x.y.z` to `x.(y+1).0`.
+- `--major`: increments `x.y.z` to `(x+1).0.0`.
+- `--prerelease [preid]`: increments to a prerelease version; the default preid is `rc`.
+- `--version <version>`: sets an exact semver version.
+
+Behavior:
+
+- Reads `package.json` in the current working directory.
+- Validates exact versions with `semver.valid`.
+- Checks that `package.json` has no uncommitted changes.
+- When `remote.fetch` is enabled, runs `git fetch` and checks whether the local branch is behind `origin/<current-branch>`.
+- Temporarily stashes unrelated working tree changes with `git stash push --keep-index`.
+- Writes the new version to `package.json`.
+- Runs `git add package.json`.
+- Creates a commit when `commit.enabled` is true.
+- Creates a lightweight tag when `tag.enabled` is true.
+- Restores previously stashed changes with `git stash pop`.
+
+## Release Command
+
+```bash
+verz release [--prefix <prefix>]
+```
+
+Release versions preserve the base semver version and append or increment a release suffix:
+
+- `1.0.0` -> `1.0.0-r1`
+- `1.0.0-r1` -> `1.0.0-r2`
+- `1.0.0 --prefix tenant` -> `1.0.0-tenant-r1`
+- `1.0.0-tenant-r1 --prefix tenant` -> `1.0.0-tenant-r2`
+
+Behavior:
+
+- Reads and writes the root `package.json`.
+- Applies `release.prefix` from config or `--prefix`.
+- Runs `git add package.json`.
+- Creates a commit when `commit.enabled` is true.
+- Creates an annotated tag when `tag.enabled` is true.
+
+## Tag Command
+
+```bash
+verz tag [--tag-name <name>]
+```
+
+Behavior:
+
+- Reads the current `package.json` version.
+- Requires `tag.enabled` to be true.
+- Creates a lightweight Git tag using the configured tag name template.
+- Does not change `package.json`.
+
+## Shared Options
+
+- `--commit-message <message>`: commit message template. `%v` is replaced with the resulting version.
+- `--tag-name <name>`: tag name template. `%v` is replaced with the resulting version.
+- `--dry-run`: logs intended work without writing files or running Git-changing commands.
+- `-v, --verbose`: enables debug logging.
+
+The version command also supports:
+
+- `--no-remote-fetch`: disables the remote freshness check.
+
+## Configuration
+
+Supported config files, searched in this order from the current working directory:
+
+1. `verz.config.json`
+2. `verz.config.js`
+3. `verz.config.mjs`
+
+Default configuration:
+
+```json
+{
+  "commit": {
+    "enabled": true,
+    "message": "chore: version %v"
+  },
+  "tag": {
+    "enabled": true,
+    "name": "%v"
+  },
+  "release": {
+    "prefix": ""
+  },
+  "dryRun": false,
+  "remote": {
+    "fetch": true
+  }
+}
+```
+
+CLI options override config file values.
+
+## Agent Usage Notes
+
+- Use `--dry-run` before making a real release when the repository state is unknown.
+- Do not run a version-changing command if `package.json` already has uncommitted changes; `verz` exits with an error.
+- Expect Git side effects from non-dry-run commands: fetch, stash, add, commit, tag, and stash pop depending on command and config.
+- Prefer `--commit-message` and `--tag-name` for one-off changes; prefer `verz.config.*` for project defaults.
+- There is no public programmatic API documented for application code; treat `verz` as a CLI package.
+

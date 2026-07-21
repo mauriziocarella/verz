@@ -5,6 +5,13 @@
 
 > 🤓 Fun fact: verz uses itself to manage its own versions.
 
+## 🤖 Agent Quick Reference
+
+For AI agents and automation tools, see:
+
+- [`llms.txt`](./llms.txt): compact command, configuration, and side-effect reference.
+- [`AGENTS.md`](./AGENTS.md): repository map and development notes.
+
 ## 📦 Installation
 
 Install **verz** globally or as a dev dependency:
@@ -67,9 +74,9 @@ verz tag [options]
 | `--major`              | Bump the major version (x.0.0)                                                                           | `false`             |
 | `--prerelease [preid]` | Bump to prerelease version (e.g., 1.0.0 -> 1.0.1-rc.0). Optionally specify preid (alpha, beta, rc, etc.) | `false`             |
 | `--version <version>`  | Set exact version (e.g., 1.2.3)                                                                          |                     |
-| `--commit-message`     | Custom commit message. Use `%v` for version.                                                             | `chore: release %v` |
+| `--commit-message`     | Custom commit message. Use `%v` for version.                                                             | `chore: version %v` |
 | `--tag-name`           | Custom tag name. Use `%v` for version.                                                                   | `%v`                |
-| `--no-check-remote`    | Skip check if current branch is up-to-date with remote branch                                            | `false`             |
+| `--no-remote-fetch`    | Skip fetch and remote up-to-date check before versioning                                                 | `false`             |
 | `-v, --verbose`        | Enable verbose debug logging.                                                                            | `false`             |
 | `--dry-run`            | Run without writing files or committing.                                                                 | `false`             |
 
@@ -78,7 +85,7 @@ verz tag [options]
 | Option              | Description                                   | Default             |
 |---------------------|-----------------------------------------------|---------------------|
 | `--prefix <prefix>` | Optional prefix for release-specific versions |                     |
-| `--commit-message`  | Custom commit message. Use `%v` for version.  | `chore: release %v` |
+| `--commit-message`  | Custom commit message. Use `%v` for version.  | `chore: version %v` |
 | `--tag-name`        | Custom tag name. Use `%v` for version.        | `%v`                |
 | `-v, --verbose`     | Enable verbose debug logging.                 | `false`             |
 | `--dry-run`         | Run without writing files or committing.      | `false`             |
@@ -101,13 +108,13 @@ You can configure **verz** using a configuration file. Create one of the followi
 
 ### Configuration Options
 
-| Option         | Description                                                                 | Default             |
-|----------------|-----------------------------------------------------------------------------|---------------------|
-| `commit`       | Commit configuration                                                       | `{ enabled: true, message: 'chore: release %v' }` |
-| `tag`          | Tag configuration                                                          | `{ enabled: true, name: '%v' }` |
-| `release`      | Release configuration                                                      | `{ prefix: '' }` |
-| `dryRun`       | Run without making changes (for testing)                                    | `false` |
-| `checkRemote`  | Check if branch is up-to-date with remote before versioning                 | `true` |
+| Option    | Description                                                 | Default                                         |
+|-----------|-------------------------------------------------------------|-------------------------------------------------|
+| `commit`  | Commit configuration                                        | `{ enabled: true, message: 'chore: version %v' }` |
+| `tag`     | Tag configuration                                           | `{ enabled: true, name: '%v' }`                 |
+| `release` | Release configuration                                       | `{ prefix: '' }`                               |
+| `dryRun`  | Run without making changes (for testing)                    | `false`                                        |
+| `remote`  | Remote freshness check configuration for versioning commands | `{ fetch: true }`                              |
 
 The configuration file structure:
 ```json
@@ -124,7 +131,9 @@ The configuration file structure:
     "prefix": ""
   },
   "dryRun": false,
-  "checkRemote": true
+  "remote": {
+    "fetch": true
+  }
 }
 ```
 
@@ -199,13 +208,13 @@ verz tag --verbose
 Bump the minor version with a custom commit message:
 
 ```bash
-verz --minor --commit.message "release: bump to %v"
+verz --minor --commit-message "release: bump to %v"
 ```
 
 Create a git tag for the current version without bumping:
 
 ```bash
-verz --tag-only
+verz tag
 ```
 
 Dry run (show what would happen without doing it):

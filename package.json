@@ -1,7 +1,7 @@
 {
 	"name": "verz",
 	"version": "0.7.2",
-	"description": "",
+	"description": "CLI tool for semver package versioning, Git commits, and release tags.",
 	"repository": "github:mauriziocarella/verz",
 	"license": "MIT",
 	"author": {
@@ -30,7 +30,11 @@
 	"bin": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": [
-		"dist"
+		"dist",
+		"README.md",
+		"LICENSE.md",
+		"llms.txt",
+		"AGENTS.md"
 	],
 	"scripts": {
 		"build": "tsup",
